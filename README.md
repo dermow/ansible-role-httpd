@@ -1,4 +1,4 @@
-# ansible.roles.httpd
+# ansible-role-httpd
 
 ## Requirements
 * httpd >= 2.4.39
