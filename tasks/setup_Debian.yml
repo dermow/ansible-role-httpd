@@ -1,0 +1,40 @@
+- name: Install httpd (apt)
+  apt:
+    name: "{{ _packages + httpd_packages }}"
+    state: present
+
+- name: Enable httpd
+  systemd:
+    name: "{{ httpd_service_name }}"
+    enabled: yes
+
+- name: Enable Modules (Debian)
+  apache2_module:
+    name: "{{ item }}"
+  loop:
+    - rewrite
+    - ssl
+    - proxy
+  notify: restart httpd
+
+- name: Listen on all http ports
+  lineinfile:
+    path: "{{ httpd_ports_config }}"
+    line: "Listen {{ item.http_port }}"
+    regexp: "^Listen {{ item.http_port }}$"
+  loop: "{{ httpd_vhosts }}"
+  when:
+    - "item.http_port is defined" 
+    - "item.http_port != _http_port"
+  notify: restart httpd
+
+- name: Listen on all https ports
+  lineinfile:
+    path: "{{ httpd_ports_config }}"
+    line: "Listen {{ item.https_port }}"
+    regexp: "^Listen {{ item.https_port }}$"
+  loop: "{{ httpd_vhosts }}"
+  when:
+    - "item.https_port is defined" 
+    - "item.https_port != _https_port"
+  notify: restart httpd

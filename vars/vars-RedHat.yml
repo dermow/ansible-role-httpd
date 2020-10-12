@@ -1,0 +1,9 @@
+httpd_base_dir: "/etc/httpd"
+httpd_vhosts_dir: "/etc/httpd/conf.d"
+httpd_conf_dir: "{{ httpd_vhosts_dir }}"
+httpd_packages: [ "httpd", "mod_ssl" ]
+httpd_service_path: "/usr/sbin"
+httpd_service_name: "httpd"
+httpd_log_dir: "/var/log/httpd"
+httpd_base_config: "/etc/httpd/conf/httpd.conf"
+httpd_ports_config: "{{ httpd_base_config }}"

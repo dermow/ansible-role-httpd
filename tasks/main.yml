@@ -1,0 +1,43 @@
+
+- name: Include vars per OS
+  include_vars:
+    file: "vars-{{ ansible_os_family }}.yml"
+
+- name: Generate Diffie-Hellman parameters
+  openssl_dhparam:
+    path: "{{ dh_params_path }}"
+    size: "{{ dh_params_size }}"
+  when: "auto_generate_dhparams|bool"
+  notify: restart httpd
+
+- name: check if dhparams existing
+  block:
+    - stat:
+        path: "{{ dh_params_path }}"
+      register: stat_dh_params
+    - set_fact:
+        dh_params_existing: stat_dh_params.stat.exists
+
+- name: Include Setup Tasks
+  include_tasks: "setup_{{ ansible_os_family }}.yml"
+
+- name: Get installed version
+  block:
+    -  shell: "{{ httpd_service_path }}/{{ httpd_service_name }} -v"
+       register: _httpd_version
+       changed_when: False
+    - set_fact:
+        httpd_version: "{{ _httpd_version.stdout.split()[2].split('/')[1] }}"
+
+- name: Template ssl.conf
+  template:
+    src: ssl.conf.j2
+    dest: "{{ httpd_conf_dir }}/ssl.conf"
+  notify: restart httpd
+
+- name: Template vhosts
+  template:
+    src: vhost.conf.j2
+    dest: "{{ httpd_vhosts_dir }}/{{ item.name }}.conf"
+  loop: "{{ httpd_vhosts }}"
+  notify: restart httpd

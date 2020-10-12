@@ -1,0 +1,26 @@
+auto_generate_dhparams: False
+dh_params_path: "{{ httpd_base_dir }}/dhparam.pem"
+dh_params_size: 2048
+
+_packages: [ "openssl" ]
+_http_port: 80
+_https_port: 443
+_SSLProto: "-all +TLSv1.2"
+_SSLCipherSuite:
+  - TLS-CHACHA20-POLY1305-SHA256
+  - TLS-AES-256-GCM-SHA384
+  - ECDHE-RSA-AES256-GCM-SHA512
+  - DHE-RSA-AES256-GCM-SHA512
+  - ECDHE-RSA-AES256-GCM-SHA384
+  - DHE-RSA-AES256-GCM-SHA384
+_SSLUseStapling: "On"
+_SSLHonorCipherOrder: "On"
+_SSLCompression: "Off"
+_SSLSessionTickets: "Off"
+_SSLOpenSSLConfCmd:
+  - "Curves X448:secp521r1:secp384r1:prime256v1"
+  - "ECDHParameters secp384r1"
+
+SSLStaplingResponderTimeout: 5
+SSLStaplingReturnResponderErrors: "Off"
+SSLStaplingCache: "shmcb:/var/run/ocsp(128000)"

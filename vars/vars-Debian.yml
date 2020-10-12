@@ -1,0 +1,9 @@
+httpd_base_dir: "/etc/apache2"
+httpd_vhosts_dir: "/etc/apache2/sites-enabled"
+httpd_conf_dir: "{{ httpd_base_dir }}/conf-enabled"
+httpd_packages: [ "apache2", "apache2-utils" ]
+httpd_service_name: "apache2"
+httpd_service_path: "/usr/sbin"
+httpd_log_dir: "/var/log/apache2"
+httpd_base_config: "/etc/apache2/apache2.conf"
+httpd_ports_config: "/etc/apache2/ports.conf"

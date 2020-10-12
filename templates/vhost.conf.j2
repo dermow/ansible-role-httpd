@@ -1,0 +1,75 @@
+{% if item.type == 'https' and item.redirect_http|default(false) %}
+<VirtualHost *:{{ item.http_port|default(_http_port) }}>
+    ServerName {{ item.name }}
+    RewriteEngine On
+    RewriteCond %{SERVER_PORT} !^{{ item.https_port|default(_https_port) }}$
+    RewriteRule (.*) https://%{HTTP_HOST}/$1 [R=301,L]
+</VirtualHost>
+{% endif %}
+
+<VirtualHost *:{% if item.type == 'https' %}{{ item.https_port|default(_https_port) }}{% else %}{{ item.http_port|default(_http_port) }}{% endif %}>
+    ServerName {{ item.ServerName|default(item.name) }}
+
+{% if item.LogFormatCombined is defined %}
+    LogFormat "{{ item.LogFormatCombined }}"
+{% endif %}
+
+{% if item.LogFormatCommon is defined %}
+    LogFormat "{{ item.LogFormatCommon }}"
+{% endif %}
+{% if item.ErrorLog is defined %}
+    ErrorLog {{ item.ErrorLog }}
+{% endif %}
+{% if item.CustomLog is defined %}
+    CustomLog {{ item.CustomLog }}
+{% endif %}
+
+{% if item.DocumentRoot is defined %}
+    DocumentRoot {{ item.DocumentRoot }}
+{% endif %}
+
+{% if item.ProxyPreserveHost is defined and item.ProxyPreserveHost == True %}
+    ProxyPreserveHost On
+{% endif %}
+{% if item.ProxyRequests is defined and item.ProxyRequests == True%}
+    ProxyRequests On
+{% endif %}
+{% if item.proxy_rules is defined%}
+{% for rule in item.proxy_rules %}
+    ProxyPass "{{ rule.target }}" "{{ rule.proxy }}"
+{% if rule.reverse %}
+    ProxyPassReverse "{{ rule.target }}" "{{ rule.reverse }}"
+{% endif %}
+{% endfor %}
+{% endif %}
+
+{% if item.type == 'https' %}
+    SSLEngine On
+    SSLOptions {{ item.SSLOptions }}
+    SSLCertificateFile {{ item.SSLCertificateFile }}
+    SSLCertificateKeyFile {{ item.SSLCertificateKeyFile }}
+{% if item.SSLProtocol is defined %}
+    SSLProtocol {{ item.SSLProtocol }}
+{% else %}
+    SSLProtocol {{ _SSLProto }}
+{% endif %}
+    SSLUseStapling {{ item.SSLUseStapling|default(_SSLUseStapling) }}
+    SSLCipherSuite {% for s in item.SSLCipherSuite|default(_SSLCipherSuite) %}{{s}}{% if not loop.last %}:{% endif %}{% endfor %}
+
+    SSLHonorCipherOrder {{ item.SSLHonorCipherOrder|default(_SSLHonorCipherOrder) }}
+    SSLCompression {{ item.SSLCompression|default(_SSLCompression) }}
+    SSLSessionTickets {{ item.SSLSessionTickets|default(_SSLSessionTickets) }}
+{% for i in item.SSLOpenSSLConfCmd|default(_SSLOpenSSLConfCmd) %}
+    SSLOpenSSLConfCmd {{ i }}
+{% endfor %}
+{% if dh_params_existing %}
+    SSLOpenSSLConfCmd DHParameters "{{ dh_params_path }}"
+{% endif %}
+{% endif %}
+
+{% for eb in item.extra_blocks|default([]) %}
+{{ eb.block }}
+
+{% endfor %}
+
+</VirtualHost>
